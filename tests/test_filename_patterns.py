@@ -262,8 +262,8 @@ class TestFilenamePatterns(unittest.TestCase):
     def test_special_characters_in_patterns(self):
         """Test patterns with special characters."""
         test_cases = [
-            # Spaces and dashes
-            ('my document_{count}', 'my document_1'),
+            # Spaces and dashes (spaces become underscores)
+            ('my document_{count}', 'my_document_1'),
             ('file_v{count:3}-final', 'file_v001-final'),
             
             # Underscores and numbers
@@ -271,6 +271,9 @@ class TestFilenamePatterns(unittest.TestCase):
             
             # Multiple extensions (edge case)
             ('output_{count}.backup', 'output_1.backup'),
+            
+            # Colons preserved
+            ('file:name_{count}', 'file:name_1'),
         ]
         
         for pattern, expected_start in test_cases:
@@ -294,6 +297,8 @@ class TestFilenamePatterns(unittest.TestCase):
             ('my|file_{count}', 'my_file_1'),  # | becomes _
             ('file?name_{count}', 'filename_1'),  # ? becomes _
             ('file{name}_{count}.txt', 'filename_1.txt'),  # . allowed but handled
+            ('file name_{count}.txt', 'file_name_1.txt'),  # spaces become underscores
+            ('file:name_{count}.txt', 'file:name_1.txt'),  # colon preserved
         ]
         
         for pattern, expected in test_cases:
