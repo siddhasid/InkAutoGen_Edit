@@ -4,6 +4,7 @@ Security utilities for InkAutoGen extension.
 """
 
 import os
+import sys
 import re
 import hashlib
 import logging
@@ -37,8 +38,12 @@ class FileValidator:
         re.compile(r'system\s*\(', re.IGNORECASE),
     ]
     
-    # Safe path patterns
-    SAFE_PATH_PATTERN: re.Pattern = re.compile(r'^[a-zA-Z0-9._/-]+$')
+    # Safe path patterns (no control chars, no dangerous characters)
+    # Allow backslashes on Windows platforms
+    if sys.platform.startswith('win'):
+        SAFE_PATH_PATTERN: re.Pattern = re.compile(r'^[^*\?"<>|\x00-\x1f]+$')
+    else:
+        SAFE_PATH_PATTERN: re.Pattern = re.compile(r'^[^\\*\?"<>|\x00-\x1f]+$')
     
     @classmethod
     def validate_file_path(cls, file_path: str, allowed_extensions: Optional[Set[str]] = None) -> bool:
@@ -188,15 +193,18 @@ class FileValidator:
         """
         logger.info(f"Sanitizing filename: {filename}")
         # Remove dangerous characters
-        sanitized = re.sub(r'[<>:"|?*\x00-\x1f]', '', filename)
+        if sys.platform.startswith('win'):
+            sanitized = re.sub(r'[<>"\\|?*\x00-\x1f]', '', filename)
+        else:
+            sanitized = re.sub(r'[<>:"|?*\x00-\x1f]', '', filename)
         logger.debug(f"Removed dangerous characters")
         
         # Remove control characters
         sanitized = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', sanitized)
         logger.debug(f"Removed control characters")
         
-        # Replace multiple spaces with single space
-        sanitized = re.sub(r'\s+', ' ', sanitized)
+        # Replace whitespace with underscore
+        sanitized = re.sub(r'[ \t\r\n]+', '_', sanitized)
         
         # Remove leading/trailing spaces and dots
         sanitized = sanitized.strip(' .')
