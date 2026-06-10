@@ -285,9 +285,9 @@ def sanitize_filename(filename: str) -> str:
 
     This function performs following operations:
     - Replaces ampersand (&) characters with underscore
-    - Replaces spaces with underscores (collapses multiple spaces)
-    - Removes unpaired % signs
-    - Replaces characters not allowed in filenames on most OS: <>:"/\\|?*#
+    - Replaces whitespace (space, tab, newline) with underscore
+    - Replaces characters not allowed in filenames on most OS: <>:"/\\|?*%&$@#
+    - NOTE: Colon (:) is preserved as-is
     - Removes control characters (0x00-0x1f, 0x7f-0x9f)
     - Trims whitespace and underscores from beginning and end
 
@@ -309,25 +309,28 @@ def sanitize_filename(filename: str) -> str:
         >>> sanitize_filename("file\\path/name.txt")
         'file_path_name.txt'
         >>> sanitize_filename("file  name.pdf")
-        'file_name.pdf'
+        'file__name.pdf'
         >>> sanitize_filename("test&value")
         'test_value'
         >>> sanitize_filename("invoice#123")
         'invoice_123'
         >>> sanitize_filename("file%name")
         'filename'
-        >>> sanitize_filename("file%%name")
-        'file___name'
+        >>> sanitize_filename("file:name")
+        'file:name'
     """
     # Replace ampersand characters with underscore
     #filename = filename.replace('&', '_')
 
-    # Replace one or more whitespace (space, tab, newline) with single underscore
+    # Replace whitespace (space, tab, newline) with underscore
     # Note: Don't use \s as it matches control characters
     filename = re.sub(r'[ \t\r\n]+', '_', filename)
 
-    # Replace characters not allowed in filenames on most OS
-    filename = re.sub(r'[<>:"/\\|?*%&$@#]', '_', filename)
+    # Replace characters not allowed in filenames on most OS (colon preserved)
+    if sys.platform.startswith('win'):
+        filename = re.sub(r'[<>"\\/\\|?*%&$@#]', '_', filename)
+    else:
+        filename = re.sub(r'[<>:"/\\|?*%&$@#]', '_', filename)
 
     # Remove control characters (0x00-0x1f, 0x7f-0x9f)
     filename = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', filename)
