@@ -12,6 +12,59 @@
 8. [Exceptions API](#exceptions-api)
 9. [Performance API](#performance-api)
 
+## 🏗️ Complete Architecture Overview
+
+### System Architecture Diagram
+```
+┌───────────────────────────────────────────────────────────────┐
+│                    Inkscape Extension Layer                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   inkautogen.py │  │  inkautogen.inx │  │   UI/CLI Layer  ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└───────────────────────────────────────────────────────────────┘
+                                 │
+┌───────────────────────────────────────────────────────────────┐
+│                    Core Processing Layer                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   CSV Reader    │  │  SVG Processor  │  │  File Exporter  ││
+│  │                 │  │                 │  │                 ││
+│  │ • Encoding      │  │ • Element       │  │ • Multi-format  ││
+│  │ • Validation    │  │   Processing    │  │ • PDF Merging   ││
+│  │ • Classification│  │ • Property      │  │ • Temp Mgmt     ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└───────────────────────────────────────────────────────────────┘
+                                 │
+┌───────────────────────────────────────────────────────────────┐
+│                    Support Services Layer                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   Utilities     │  │   Security      │  │   Performance   ││
+│  │                 │  │                 │  │                 ││
+│  │ • XPath         │  │ • Validation    │  │ • Monitoring    ││
+│  │ • Filename      │  │ • Sanitization  │  │ • Timing        ││
+│  │ • Logging       │  │ • File Checks   │  │ • Memory        ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Architecture
+```
+CSV Input → Encoding Detection → Validation → Classification
+    ↓                                           ↓
+SVG Template → Element Caching → Template Processing → Batch Operations
+    ↓                                           ↓
+Configuration → Export Pipeline → File Generation → PDF Merging
+    ↓                                           ↓
+Performance Monitoring → Logging → Cleanup → Final Output
+```
+
+### Module Interaction Matrix
+| Module | Primary Dependencies | Data Exchange | Communication Method |
+|---------|-------------------|--------------|-------------------|
+| CSVReader | Utilities, Security | CSV Data, Metadata | Direct API calls |
+| SVGProcessor | Utilities, Security | SVG Elements, Templates | Direct API calls |
+| FileExporter | Utilities, Security | Export Parameters, Results | Direct API calls |
+| Performance | All modules | Metrics, Timing | Decorator pattern |
+
 ## 🔧 Core Modules
 
 ### Main Extension (`inkautogen.py`)
@@ -44,7 +97,107 @@ class InkAutoGen(Effect):
 - `process_batch()`: Orchestrates the complete processing workflow
 - `setup_logging()`: Configures logging based on user preferences
 
-## 📊 CSV Reader API
+## 📊 CSV Reader API (Optimized)
+
+### Class: `CSVReader`
+Enhanced CSV data reader with multi-tiered encoding detection and intelligent caching.
+
+```python
+class CSVReader:
+    """CSV data reader with encoding detection and validation."""
+    
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        """
+        Initialize CSV reader with optimized caching system.
+        
+        Features:
+        - Encoding detection cache (1-hour TTL)
+        - CSV classification cache
+        - Performance monitoring via decorators
+        - Security validation integration
+        """
+        
+    @cached(ttl=3600)
+    def detect_encoding(self, file_path: str) -> str:
+        """
+        Optimized encoding detection with multi-tiered approach.
+        
+        Detection Strategy:
+        1. Cache lookup (performance optimization)
+        2. Security validation
+        3. chardet library (70%+ confidence threshold)
+        4. BOM detection for UTF variants
+        5. Trial-and-error with priority encodings
+        6. UTF-8 fallback
+        
+        Returns:
+            Detected encoding string (e.g., 'utf-8', 'utf-16-le')
+        """
+        
+    def classify_csv_data(self, data: List[Dict[str, str]], svg_root) -> Dict[str, Any]:
+        """
+        Intelligent CSV header classification with SVG validation.
+        
+        Classification Types:
+        - Element values: Direct content replacement
+        - Property values: Element property modification
+        - Layer visibility: Layer display control
+        - Missing elements: Validation against SVG template
+        
+        Returns:
+            {
+                'elements': List[str],
+                'properties': List[str],
+                'element_mapping': Dict[str, Dict],
+                'property_mapping': Dict[str, Dict],
+                'missing_elements': List[str]
+            }
+        """
+        
+    def filter_rows_by_range(self, data: List[Dict[str, str]], row_range: str) -> List[Dict[str, str]]:
+        """
+        Optimized row filtering with multiple range format support.
+        
+        Supported Formats:
+        - Range: "1-10", "1-5,8,10-15"
+        - Specific: "1,4,5,9"
+        - Patterns: "even", "odd"
+        - Combined: "1-5,8,10-15,20"
+        
+        Performance Features:
+        - Pre-compiled regex patterns
+        - Efficient index-based filtering
+        - Large dataset handling
+        """
+        
+    def read_csv_data(self, csv_path: str, encoding: str = "autodetect") -> List[Dict[str, str]]:
+        """
+        High-performance CSV reading with comprehensive error handling.
+        
+        Features:
+        - Automatic encoding detection
+        - BOM removal and header cleaning
+        - Performance limit enforcement
+        - Memory-efficient streaming for large files
+        - Security validation
+        """
+        
+    def filter_csv_data_by_missing_elements(self, data: List[Dict[str, str]], 
+                                         missing_elements: List[str]) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:
+        """
+        Filter CSV data to remove columns referencing missing SVG elements.
+        
+        Returns:
+            Tuple of (filtered_data, removed_data) for debugging
+        """
+```
+
+**Optimization Features:**
+- **Multi-tiered Caching**: Encoding detection and classification results cached
+- **Security Integration**: All file operations validated through security module
+- **Performance Monitoring**: Built-in timing and memory tracking
+- **Error Recovery**: Comprehensive error handling with detailed context
+- **Memory Efficiency**: Optimized for large datasets up to 10,000 rows
 
 ### Class: `CSVReader`
 Handles CSV data import with automatic encoding detection and validation.
@@ -132,7 +285,150 @@ filtered = reader.filter_rows_by_range(data, "1-10")
 print(f"Filtered to {len(filtered)} rows")
 ```
 
-## 🎨 SVG Processor API
+## 🎨 SVG Processor API (Performance-Optimized)
+
+### Class: `SVGElementProcessor`
+High-performance SVG template processor with intelligent caching and batch operations.
+
+```python
+class SVGElementProcessor:
+    """SVG template processor with performance optimization."""
+    
+    def __init__(self, csv_dir: Optional[str] = None, output_dir: Optional[str] = None,
+                 is_use_relative_path: bool = False, logger: Optional[logging.Logger] = None):
+        """
+        Initialize processor with multi-level caching system.
+        
+        Caching Strategy:
+        - Element lookup cache (session-based)
+        - Color conversion cache
+        - XPath query cache
+        - Classification result cache
+        """
+        
+    def find_elements_by_name(self, svg_root, name: str) -> List:
+        """
+        Optimized element discovery with intelligent caching.
+        
+        Search Strategy:
+        1. Cache lookup (performance optimization)
+        2. Combined XPath query (label OR ID)
+        3. Fallback to separate queries
+        4. Result caching for future lookups
+        
+        Performance Features:
+        - Single XPath query for both label and ID
+        - Namespace optimization
+        - Result caching with cache key generation
+        - Memory-efficient element storage
+        """
+        
+    def apply_data_to_template(self, svg_root, data_row: Dict[str, str], 
+                              apply_layer_visibility: bool = False, 
+                              csv_classification: Optional[Dict[str, Any]] = None) -> Dict[str, int]:
+        """
+        Optimized template application with batch processing.
+        
+        Processing Pipeline:
+        1. Pre-classified data validation
+        2. Layer visibility processing (if enabled)
+        3. Invisible layer removal (if enabled)
+        4. Grouped element operations
+        5. Batch property modifications
+        6. Statistics tracking
+        
+        Performance Optimizations:
+        - Group operations by element name
+        - Single element lookup per unique element
+        - Batch property modifications
+        - Memory-efficient XML handling
+        """
+        
+    def process_text_element(self, element, variable_name: str, value: Optional[str]) -> bool:
+        """
+        Optimized text element processing with content validation.
+        
+        Features:
+        - Unicode support
+        - Content validation
+        - Change detection (avoid unnecessary updates)
+        - Multi-language text handling
+        """
+        
+    def process_image_element(self, element, variable_name: str, value: Optional[str]) -> bool:
+        """
+        Enhanced image processing with security validation and path resolution.
+        
+        Features:
+        - Multi-path search strategy
+        - Security validation
+        - Relative/absolute path handling
+        - Image format validation
+        - File existence checking
+        """
+        
+    def process_property(self, element, property_name: str, value: Optional[str], 
+                          element_type: str) -> bool:
+        """
+        Comprehensive property processing with validation and conversion.
+        
+        Supported Properties:
+        - Colors: Hex, RGB, HSL, named colors
+        - Typography: Font family, size, weight, style
+        - Dimensions: Width, height, positioning
+        - Transformations: Rotate, scale, translate
+        - Effects: Opacity, filters, clip paths
+        
+        Features:
+        - Color alias conversion
+        - Value validation
+        - Style vs attribute handling
+        - Property-specific optimization
+        """
+        
+    def apply_layer_visibility(self, svg_root, layer_data: Dict[str, str], stats: Dict[str, int]):
+        """
+        Optimized layer visibility processing with batch operations.
+        
+        Features:
+        - Boolean value normalization
+        - Display attribute management
+        - Style attribute handling
+        - Layer type validation
+        - Performance tracking
+        """
+        
+    def remove_invisible_layers(self, svg_root, stats: Dict[str, int]):
+        """
+        Memory-efficient invisible layer removal.
+        
+        Features:
+        - XPath-based layer detection
+        - Safe tree modification
+        - Memory cleanup
+        - Statistics tracking
+        """
+        
+    def export_svg_to_csv(self, svg_root, csv_path: str) -> bool:
+        """
+        SVG element scanning for CSV template generation.
+        
+        Scanning Features:
+        - Text elements (content extraction)
+        - Image elements (href extraction)
+        - Layer elements (visibility state)
+        - Shape properties (fill, stroke, etc.)
+        - Comprehensive element mapping
+        """
+```
+
+**Performance Features:**
+- **Intelligent Caching**: Multi-level caching for elements, colors, and queries
+- **Batch Operations**: Grouped processing reduces redundant lookups
+- **Memory Optimization**: Efficient XML tree handling and cleanup
+- **Security Integration**: All operations validated through security module
+- **Unicode Support**: Full international character and emoji handling
+- **Change Detection**: Avoid unnecessary updates with value comparison
 
 ### Class: `SVGProcessor`
 Processes SVG templates and applies data transformations.
