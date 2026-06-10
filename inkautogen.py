@@ -674,7 +674,7 @@ class InkAutoGen(Effect if INKSCAPE_AVAILABLE else object):
         csv_path = self.options.csv_path
         
         # Validate CSV file path
-        if not csv_path or not os.path.exists(csv_path):
+        if not export_csv_enabled and (not csv_path or not os.path.exists(csv_path)):
             error_msg = f"CSV file not found or path not provided: {csv_path}"
             print(error_msg, file=sys.stderr)
             return
