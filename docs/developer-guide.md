@@ -17,15 +17,15 @@
 
 ### High-Level Architecture
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Inkscape Extension Layer                  │
+┌───────────────────────────────────────────────────────────────┐
+│                    Inkscape Extension Layer                   │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
 │  │   inkautogen.py │  │  inkautogen.inx │  │   UI/CLI Layer  ││
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────────┐
-│                    Core Processing Layer                     │
+└───────────────────────────────────────────────────────────────┘
+                                 │
+┌───────────────────────────────────────────────────────────────┐
+│                    Core Processing Layer                      │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
 │  │   CSV Reader    │  │  SVG Processor  │  │  File Exporter  ││
 │  │                 │  │                 │  │                 ││
@@ -33,26 +33,94 @@
 │  │ • Validation    │  │   Processing    │  │ • PDF Merging   ││
 │  │ • Classification│  │ • Property      │  │ • Temp Mgmt     ││
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────────┐
-│                    Support Services Layer                    │
+└───────────────────────────────────────────────────────────────┘
+                                 │
+┌───────────────────────────────────────────────────────────────┐
+│                    Support Services Layer                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
-│  │   Utilities     │  │   Security      │  │   Performance    ││
+│  │   Utilities     │  │   Security      │  │   Performance   ││
 │  │                 │  │                 │  │                 ││
 │  │ • XPath         │  │ • Validation    │  │ • Monitoring    ││
 │  │ • Filename      │  │ • Sanitization  │  │ • Timing        ││
 │  │ • Logging       │  │ • File Checks   │  │ • Memory        ││
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘│
-└─────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ### Design Principles
 1. **Modular Architecture**: Each component has a single responsibility
 2. **Loose Coupling**: Modules interact through well-defined interfaces
 3. **Error Resilience**: Comprehensive error handling and recovery
-4. **Performance First**: Optimized for batch processing
+4. **Performance First**: Optimized for batch processing with intelligent caching
 5. **Security Focused**: Input validation and safe operations
+
+### Performance-Optimized Architecture
+
+#### 🚀 Caching Strategy
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Multi-Level Caching System               │
+├─────────────────────────────────────────────────────────────┤
+│ Element-Level Cache                                         │
+│ ├─ SVG Elements (TTL: session)                              │
+│ ├─ XPath Queries (TTL: 1 hour)                              │
+│ └─ Classification Results (TTL: 1 hour)                     │
+├─────────────────────────────────────────────────────────────┤
+│ File-Level Cache                                            │
+│ ├─ Encoding Detection (TTL: 1 hour)                         │
+│ ├─ File Validation (TTL: 30 minutes)                        │
+│ └─ Security Scans (TTL: 15 minutes)                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### ⚡ Processing Pipeline
+```
+Input CSV → Classification → Element Caching → Batch Processing → Export
+    │              │                │               │
+    │              │                │               └─ Parallel File Ops
+    │              │                └─ Memory-Optimized XML
+    │              └─ Single-Pass Classification
+    └─ Security-Validated
+```
+
+#### 🧠 Memory Management
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Memory Optimization Strategy             │
+├─────────────────────────────────────────────────────────────┤
+│ XML Tree Management                                         │
+│ ├─ Lazy Loading (on-demand parsing)                         │
+│ ├─ Tree Cleanup (automatic GC)                              │
+│ └─ Shared Templates (copy-on-write)                         │
+├─────────────────────────────────────────────────────────────┤
+│ Batch Processing                                            │
+│ ├─ Chunked Processing (configurable batch size)             │
+│ ├─ Streaming CSV (for large files)                          │
+│ └─ Temporary File Pools                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🎯 Optimization Features
+
+#### 1. **Smart Element Discovery**
+- **Combined XPath Queries**: Single query searches both label and ID attributes
+- **Namespace Optimization**: Pre-compiled namespace contexts
+- **Result Caching**: Elements cached after first discovery
+
+#### 2. **Efficient CSV Processing**
+- **One-Pass Classification**: Headers classified once, reused for all rows
+- **Encoding Detection**: Multi-tiered approach with caching (chardet → BOM → trial)
+- **Row Filtering**: Optimized range parsing with pre-compiled regex
+
+#### 3. **Optimized Export Pipeline**
+- **Validation Consolidation**: All parameter checks combined into single pass
+- **Format-Specific Optimization**: Different strategies for vector vs raster
+- **Parallel Processing Ready**: Architecture supports future parallel export
+
+#### 4. **Resource Management**
+- **Automatic Cleanup**: Context managers for temp files
+- **Memory Monitoring**: Built-in memory usage tracking
+- **Performance Metrics**: Detailed timing and profiling information
 
 ## 📁 Module Structure
 
@@ -810,6 +878,362 @@ def secure_log_message(self, message: str, data: Dict[str, Any]) -> str:
 - **GitHub Issues**: [Project Issues](https://github.com/siddhasiddhant/InkAutoGen/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/siddhasiddhant/InkAutoGen/discussions)
 - **Wiki**: [Project Wiki](https://github.com/siddhasiddhant/InkAutoGen/wiki)
+
+## 🔧 Advanced Development Topics
+
+### Performance Profiling
+
+#### Built-in Performance Monitoring
+InkAutoGen includes comprehensive performance monitoring:
+
+```python
+# Performance decorators automatically track execution time
+@timed(operation="csv_reader.read_csv_data")
+def read_csv_data(self, file_path: str) -> List[Dict[str, str]]:
+    # Function implementation
+    pass
+
+# Performance metrics are logged automatically
+logger.info("Operation completed in 2.34 seconds")
+```
+
+#### Custom Performance Tracking
+```python
+from modules.performance import PerformanceMonitor
+
+# Create custom performance tracking
+monitor = PerformanceMonitor()
+
+with monitor.timer("custom_operation"):
+    # Your code here
+    result = process_data()
+
+# Get performance report
+report = monitor.get_performance_report()
+print(f"Total time: {report['total_time']:.2f}s")
+print(f"Memory peak: {report['memory_peak']}MB")
+```
+
+### Caching Implementation
+
+#### Element Cache Architecture
+```python
+class SVGElementProcessor:
+    def __init__(self):
+        # Multi-level caching system
+        self._element_cache = {}      # Element lookup cache
+        self._xpath_cache = {}         # Compiled XPath cache
+        self._classification_cache = {}  # Classification cache
+    
+    def find_elements_by_name(self, svg_root, name: str):
+        # Check cache first
+        cache_key = f"{id(svg_root)}_{name}"
+        if cache_key in self._element_cache:
+            return self._element_cache[cache_key]
+        
+        # Perform optimized search
+        elements = self._optimized_search(svg_root, name)
+        
+        # Cache result
+        self._element_cache[cache_key] = elements
+        return elements
+```
+
+#### Cache Invalidation Strategy
+```python
+def invalidate_cache(self, cache_type: str = "all"):
+    """Invalidate specific cache types."""
+    if cache_type == "all":
+        self._element_cache.clear()
+        self._xpath_cache.clear()
+        self._classification_cache.clear()
+    elif cache_type == "elements":
+        self._element_cache.clear()
+    elif cache_type == "xpath":
+        self._xpath_cache.clear()
+```
+
+### Memory Optimization Techniques
+
+#### XML Tree Management
+```python
+def process_svg_with_memory_optimization(svg_root, data):
+    """Process SVG with minimal memory footprint."""
+    
+    # Use copy-on-write for template
+    template_copy = copy.deepcopy(svg_root)
+    
+    try:
+        # Process data
+        apply_data_to_template(template_copy, data)
+        
+        # Serialize efficiently
+        result = etree.tostring(template_copy, encoding='utf-8')
+        
+    finally:
+        # Explicit cleanup
+        template_copy.clear()
+        del template_copy
+    
+    return result
+```
+
+#### Batch Processing for Large Datasets
+```python
+def process_large_dataset(csv_data, batch_size=100):
+    """Process large CSV datasets in memory-efficient batches."""
+    
+    for batch_start in range(0, len(csv_data), batch_size):
+        batch_end = min(batch_start + batch_size, len(csv_data))
+        batch = csv_data[batch_start:batch_end]
+        
+        # Process batch
+        yield process_batch(batch)
+        
+        # Force garbage collection
+        import gc
+        gc.collect()
+```
+
+### Security Implementation Details
+
+#### Multi-Layer Security Validation
+```python
+class SecurityValidator:
+    @staticmethod
+    def validate_file_path(file_path: str, allowed_extensions: Set[str]) -> bool:
+        """Comprehensive file path validation."""
+        
+        # Layer 1: Path traversal protection
+        if '..' in file_path or file_path.startswith('~'):
+            raise FileSecurityError("Path traversal detected")
+        
+        # Layer 2: Character validation
+        if not SAFE_PATH_PATTERN.match(file_path):
+            raise FileSecurityError("Unsafe characters in path")
+        
+        # Layer 3: Extension validation
+        file_ext = Path(file_path).suffix.lower()
+        if file_ext not in allowed_extensions:
+            raise FileSecurityError("Disallowed file extension")
+        
+        # Layer 4: Content scanning
+        if file_ext in TEXT_EXTENSIONS:
+            validate_file_content(file_path)
+        
+        return True
+```
+
+#### Content Security Scanning
+```python
+DANGEROUS_PATTERNS = [
+    re.compile(r'<script[^>]*>', re.IGNORECASE),
+    re.compile(r'javascript:', re.IGNORECASE),
+    re.compile(r'eval\s*\(', re.IGNORECASE),
+    re.compile(r'exec\s*\(', re.IGNORECASE),
+]
+
+def scan_content_safety(content: str) -> bool:
+    """Scan content for dangerous patterns."""
+    
+    for pattern in DANGEROUS_PATTERNS:
+        if pattern.search(content):
+            return False
+    
+    return True
+```
+
+### Error Handling Architecture
+
+#### Structured Exception Hierarchy
+```python
+class InkAutoGenError(Exception):
+    """Base exception with context tracking."""
+    
+    def __init__(self, message: str, error_code: str = None, 
+                 context: Dict[str, Any] = None):
+        super().__init__(message)
+        self.message = message
+        self.error_code = error_code
+        self.context = context or {}
+        self.timestamp = datetime.now()
+
+class CSVProcessingError(InkAutoGenError):
+    """CSV-specific error with file context."""
+    
+    def __init__(self, message: str, file_path: str = None, 
+                 line_number: int = None, **kwargs):
+        context = kwargs.get('context', {})
+        context.update({
+            'file_path': file_path,
+            'line_number': line_number,
+            'file_size': os.path.getsize(file_path) if file_path else None
+        })
+        super().__init__(message, "CSV_ERROR", context)
+```
+
+#### Error Recovery Strategies
+```python
+def process_with_recovery(data, max_retries=3):
+    """Process data with automatic error recovery."""
+    
+    for attempt in range(max_retries):
+        try:
+            return process_data(data)
+            
+        except TemporaryError as e:
+            if attempt == max_retries - 1:
+                raise
+            logger.warning(f"Temporary error (attempt {attempt + 1}): {e}")
+            time.sleep(2 ** attempt)  # Exponential backoff
+            
+        except PermanentError as e:
+            logger.error(f"Permanent error: {e}")
+            raise
+```
+
+### Testing Strategy
+
+#### Unit Testing with Mocking
+```python
+import unittest
+from unittest.mock import Mock, patch
+
+class TestCSVReader(unittest.TestCase):
+    
+    @patch('modules.csv_reader.FileValidator')
+    def test_encoding_detection(self, mock_validator):
+        """Test encoding detection with mocked file validator."""
+        
+        # Setup mock
+        mock_validator.validate_csv_file.return_value = True
+        
+        # Test
+        reader = CSVReader()
+        encoding = reader.detect_encoding('test.csv')
+        
+        # Assertions
+        self.assertEqual(encoding, 'utf-8')
+        mock_validator.validate_csv_file.assert_called_once()
+```
+
+#### Integration Testing
+```python
+class TestEndToEndWorkflow(unittest.TestCase):
+    
+    def test_complete_processing_pipeline(self):
+        """Test complete workflow from CSV to exported files."""
+        
+        # Setup test data
+        csv_data = create_test_csv()
+        svg_template = create_test_svg()
+        
+        # Process
+        processor = InkAutoGen()
+        results = processor.process_batch(csv_data, svg_template)
+        
+        # Verify results
+        self.assertEqual(len(results), len(csv_data))
+        self.assertTrue(all(os.path.exists(f) for f in results))
+```
+
+### Extending the Architecture
+
+#### Adding New Export Formats
+```python
+# 1. Update configuration
+config.SUPPORTED_EXPORT_FORMATS.add("webp")
+
+# 2. Extend file exporter
+class EnhancedFileExporter(FileExporter):
+    
+    def _export_webp(self, input_path: str, output_path: str, dpi: int):
+        """Export to WebP format with optimization."""
+        
+        export_args = {
+            'export_type': 'webp',
+            'export_filename': output_path,
+            'export_dpi': dpi,
+            'export_background': None  # Transparent background
+        }
+        
+        inkscape(input_path, **export_args)
+
+# 3. Register format
+FileExporter._export_handlers['webp'] = EnhancedFileExporter._export_webp
+```
+
+#### Custom Element Processors
+```python
+class CustomElementProcessor:
+    """Base class for custom element processors."""
+    
+    def can_process(self, element) -> bool:
+        """Check if element can be processed."""
+        raise NotImplementedError
+    
+    def process(self, element, value: str, context: Dict[str, Any]):
+        """Process element with given value."""
+        raise NotImplementedError
+
+# Register custom processor
+svg_processor.register_element_processor(CustomElementProcessor())
+```
+
+### Debugging and Monitoring
+
+#### Advanced Logging Configuration
+```python
+def setup_debug_logging():
+    """Setup comprehensive debugging environment."""
+    
+    # Create detailed formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - '
+        '[%(filename)s:%(lineno)d] - %(message)s'
+    )
+    
+    # File handler with rotation
+    file_handler = RotatingFileHandler(
+        'debug.log', maxBytes=10*1024*1024, backupCount=5
+    )
+    file_handler.setFormatter(formatter)
+    
+    # Console handler for immediate feedback
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    
+    # Configure root logger
+    logging.root.setLevel(logging.DEBUG)
+    logging.root.addHandler(file_handler)
+    logging.root.addHandler(console_handler)
+```
+
+#### Performance Profiling
+```python
+import cProfile
+import pstats
+
+def profile_processing_function(func):
+    """Decorator for profiling processing functions."""
+    
+    def wrapper(*args, **kwargs):
+        profiler = cProfile.Profile()
+        profiler.enable()
+        
+        result = func(*args, **kwargs)
+        
+        profiler.disable()
+        
+        # Save profiling results
+        stats = pstats.Stats(profiler)
+        stats.sort_stats('cumulative')
+        stats.print_stats(20)  # Top 20 functions
+        
+        return result
+    
+    return wrapper
+```
 
 ---
 
