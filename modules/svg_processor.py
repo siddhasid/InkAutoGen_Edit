@@ -41,6 +41,7 @@ Dependencies:
 import os
 import re
 import logging
+import sys
 from typing import List, Dict, Optional, Tuple, Any
 from lxml import etree
 
@@ -283,6 +284,8 @@ class SVGElementProcessor:
             final_href = found_path['relative'] if found_path and 'relative' in found_path else value_str
         
         if original_href != final_href:
+            if sys.platform.startswith('win'):
+                final_href = final_href.replace('\\', '/')
             element.set(f"{{{config.SVG_NAMESPACES['xlink']}}}href", final_href)
             if self.logger:
                 self.logger.debug(f"    Updated '{original_href}' -> '{final_href}'")
